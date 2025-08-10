@@ -54,7 +54,6 @@ def clear_all_data_callback():
     st.session_state.chat_history = []
     st.session_state.chat_history.append({"role": "model", "parts": [{"text": "All data and chat history cleared. Please upload a new PDF."}]})
     # Reset the file uploader widget
-    st.session_state.pdf_uploader = None
     st.rerun() # Rerun to update the UI
 
 # --- Main App Logic ---
