@@ -24,7 +24,7 @@ if "vectorstore" not in st.session_state:
 
 def handle_pdf_upload_callback():
     """Callback function for PDF file uploader."""
-    uploaded_file = st.session_file_uploader
+    uploaded_file = st.session_state.pdf_uploader
     if uploaded_file:
         # Clear previous data before processing new PDF
         clear_chroma_db_data() # This clears the persisted ChromaDB data
