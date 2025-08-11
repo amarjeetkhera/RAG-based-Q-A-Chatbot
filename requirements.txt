@@ -1,8 +1,7 @@
 streamlit
-requests
-PyPDF2
 langchain
 langchain-community
 langchain-google-genai
-chromadb
-tiktoken
+faiss-cpu
+PyPDF2
+requests
