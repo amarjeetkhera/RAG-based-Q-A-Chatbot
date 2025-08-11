@@ -1,5 +1,5 @@
 import streamlit as st
-from rag_utils import load_and_prepare_docs, answer_question
+from core_function import load_and_prepare_docs, answer_question
 import os
 
 # Set page config
