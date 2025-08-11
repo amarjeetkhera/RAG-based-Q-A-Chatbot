@@ -1,4 +1,5 @@
 import PyPDF2
+import streamlit as st
 from langchain.vectorstores import FAISS
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
