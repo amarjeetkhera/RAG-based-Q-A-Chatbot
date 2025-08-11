@@ -1,131 +1,64 @@
-import os
-import requests
-import json
+import PyPDF2
+from langchain.vectorstores import FAISS
+from langchain.embeddings import GoogleGenerativeAIEmbeddings
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.document_loaders import PyPDFLoader
+from langchain_core.documents import Document
+from langchain_core.vectorstores import VectorStore
+import google.generativeai as genai
+import tempfile
+from typing import List
 
-from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_community.vectorstores import FAISS
+# Initialize Gemini
+def init_gemini():
+    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
+# Load and split PDF into chunks
+def load_and_prepare_docs(pdf_file) -> VectorStore:
+    init_gemini()
 
-# --- Constants ---
-EMBEDDING_MODEL = "gemini-embedding-001"
-GENERATION_MODEL = "gemini-2.0-flash"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        tmp.write(pdf_file.read())
+        tmp_path = tmp.name
 
+    # Load PDF using LangChain loader
+    loader = PyPDFLoader(tmp_path)
+    pages = loader.load()
 
-# --- PDF to FAISS Vectorstore ---
-def process_pdf_and_create_vectorstore(uploaded_file, api_key):
-    """
-    Processes an uploaded PDF and returns a FAISS vectorstore using Gemini embeddings.
-    
-    Args:
-        uploaded_file: PDF uploaded via Streamlit
-        api_key: Gemini API key
+    # Split into chunks
+    splitter = CharacterTextSplitter(
+        separator="\n",
+        chunk_size=1000,
+        chunk_overlap=150,
+        length_function=len,
+    )
+    documents = splitter.split_documents(pages)
 
-    Returns:
-        FAISS vectorstore or None if processing fails
-    """
-    if uploaded_file is None:
-        print("[ERROR] No file uploaded.")
-        return None
+    # Create embeddings
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 
-    temp_file_path = "temp_uploaded_document.pdf"
+    # Create FAISS vectorstore
+    vectorstore = FAISS.from_documents(documents, embeddings)
+    return vectorstore
 
-    try:
-        # Save PDF temporarily
-        with open(temp_file_path, "wb") as f:
-            f.write(uploaded_file.getvalue())
+# Answer a question using Gemini + context from vectorstore
+def answer_question(question: str, vectorstore: VectorStore) -> str:
+    init_gemini()
 
-        # 1. Load PDF content
-        loader = PyPDFLoader(temp_file_path)
-        documents = loader.load()
-        print(f"[INFO] Loaded {len(documents)} pages.")
+    # Retrieve relevant context
+    relevant_docs: List[Document] = vectorstore.similarity_search(question, k=3)
+    context_text = "\n\n".join([doc.page_content for doc in relevant_docs])
 
-        # 2. Split text into chunks
-        splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        chunks = splitter.split_documents(documents)
-        if not chunks:
-            print("[ERROR] No content to embed.")
-            return None
-        print(f"[INFO] Split into {len(chunks)} chunks.")
-
-        # 3. Embed chunks using Gemini
-        embeddings = GoogleGenerativeAIEmbeddings(
-            model=EMBEDDING_MODEL,
-            task_type="retrieval_document",
-            google_api_key=api_key
-        )
-        print("[INFO] Embeddings initialized.")
-
-        # 4. Store embeddings in FAISS vector store (in-memory)
-        vectorstore = FAISS.from_documents(chunks, embedding=embeddings)
-        print("[INFO] FAISS vectorstore created.")
-
-        return vectorstore
-
-    except Exception as e:
-        print(f"[ERROR] Failed to process PDF: {e}")
-        return None
-
-    finally:
-        # Clean up the vector store
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
-            print(f"[INFO] Removed temp file '{temp_file_path}'.")
-
-
-# --- RAG Response Function ---
-def get_rag_response(user_query, vectorstore_instance, api_key):
-    """
-    Retrieves relevant chunks using FAISS and generates a Gemini response.
-    """
-    if not api_key:
-        return "❌ Error: Missing API key."
-
-    if vectorstore_instance is None:
-        return "❌ Error: No vectorstore available."
-
-    gemini_api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{GENERATION_MODEL}:generateContent?key={api_key}"
-
-    try:
-        # Retrieve similar chunks
-        retrieved_docs = vectorstore_instance.similarity_search(user_query, k=4)
-        print(f"[INFO] Retrieved {len(retrieved_docs)} chunks.")
-
-        # Combine context
-        context = "\n\n".join([doc.page_content for doc in retrieved_docs])
-        prompt = f"""
-You are a helpful assistant. Use only the following context to answer the question.
-If the answer is not in the context, say: "The document does not contain that information."
+    prompt = f"""Use the context below to answer the question.
+If the answer isn't in the context, say "I couldn't find that in the document."
 
 Context:
-{context}
+{context_text}
 
-Question:
-{user_query}
-"""
+Question: {question}
+Answer:"""
 
-        payload = {
-            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-        }
+    model = genai.GenerativeModel("gemini-2.0-flash")
+    response = model.generate_content(prompt)
 
-        headers = {"Content-Type": "application/json"}
-
-        response = requests.post(gemini_api_url, headers=headers, data=json.dumps(payload))
-        response.raise_for_status()
-        result = response.json()
-
-        candidates = result.get("candidates", [])
-        if candidates and candidates[0].get("content", {}).get("parts", []):
-            return candidates[0]["content"]["parts"][0]["text"]
-        else:
-            return "⚠️ Gemini returned no valid response."
-
-    except requests.exceptions.RequestException as e:
-        return f"❌ API Error: {e}"
-
-    except json.JSONDecodeError:
-        return "❌ Response parsing failed: Invalid JSON."
-
-    except Exception as e:
-        return f"❌ Unexpected error: {e}"
+    return response.text.strip()
