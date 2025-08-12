@@ -1,4 +1,3 @@
-import PyPDF2
 import streamlit as st
 from langchain_community.vectorstores import FAISS
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
