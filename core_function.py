@@ -3,7 +3,7 @@ import streamlit as st
 from langchain_community.vectorstores import FAISS
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PDFPlumberLoader
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 import google.generativeai as genai
@@ -24,7 +24,7 @@ def load_and_prepare_docs(pdf_file) -> VectorStore:
         tmp_path = tmp.name
 
     # Load PDF using LangChain loader
-    loader = PyPDFLoader(tmp_path)
+    loader = PDFPlumberLoader(tmp_path)
     pages = loader.load()
 
     # Split into chunks
