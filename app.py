@@ -3,7 +3,7 @@ from core_function import load_and_prepare_docs, answer_question
 import os
 
 # Set page config
-st.set_page_config(page_title="PDF Chatbot", page_icon="📄", layout="wide")
+st.set_page_config(page_title="PDF Chatbot", page_icon="📄", layout="centered")
 
 # Load Gemini API key from Streamlit secrets
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
