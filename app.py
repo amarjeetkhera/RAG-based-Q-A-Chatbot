@@ -3,7 +3,7 @@ from core_function import load_and_prepare_docs, answer_question
 import os
 
 # Set page config
-st.set_page_config(page_title="PDF Chatbot", page_icon="📄", layout="centered")
+st.set_page_config(page_title="Q&A Chatbot", page_icon="📄", layout="centered")
 
 # Load Gemini API key from Streamlit secrets
 os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
@@ -16,8 +16,8 @@ if "vectorstore" not in st.session_state:
     st.session_state.vectorstore = None
 
 # UI layout
-st.title("📄 Ask Questions About Your PDF")
-st.markdown("Upload a PDF and start chatting with it!")
+st.title("Q&A Chatbot")
+st.markdown("Upload a PDF to start chatting with it.")
 
 # Upload PDF
 pdf_file = st.file_uploader("Upload your PDF file", type=["pdf"])
