@@ -23,3 +23,14 @@ This enhances:
 - Relevance: Answers stay grounded to the PDF uploaded by the user
 
   RAG doesn’t just simulate intelligence — it gives your chat assistant access to real relevant knowledge.
+
+## Deployment
+The tool was built keeping best-practices in mind such as usage of modular functions for better reusability and understanding. Currently, it is deployed as a web application on Streamlit Cloud for quick accessibility and demonstration.
+
+Streamlit App link: 
+
+How to Use:
+
+1. Visit the Streamlit app link.
+2. Upload your PDF data and ask any question related to the document content.
+3. Get real-time, LLM-powered context-aware answers.
