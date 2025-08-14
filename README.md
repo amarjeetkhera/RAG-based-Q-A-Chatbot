@@ -27,7 +27,7 @@ This enhances:
 ## Deployment
 The tool was built keeping best-practices in mind such as usage of modular functions for better reusability and understanding. Currently, it is deployed as a web application on Streamlit Cloud for quick accessibility and demonstration.
 
-Streamlit App link: 
+Streamlit App link: https://rag-based-q-a-chatbot-4csgzsn7ey2mc34gon3mv4.streamlit.app
 
 How to Use:
 
