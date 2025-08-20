@@ -50,8 +50,9 @@ def answer_question(question: str, vectorstore: VectorStore) -> str:
     relevant_docs: List[Document] = vectorstore.similarity_search(question, k=3)
     context_text = "\n\n".join([doc.page_content for doc in relevant_docs])
 
-    prompt = f"""Use the context below to answer the question.
-If the answer isn't in the context, say "I couldn't find that in the document."
+    prompt = f"""Use the context below to answer the question. 
+If the answer isn't in the context, check if the question is still relevant to the context. If it is, answer the question from your knowledge in brief.
+If the question is irrelevant to the document and the answer is not in the context, say "I couldn't find that in the document."
 
 Context:
 {context_text}
