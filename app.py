@@ -17,7 +17,7 @@ if "vectorstore" not in st.session_state:
 
 # UI layout
 st.title(" RAG-based Q&A Chatbot")
-st.markdown("Upload a PDF to start chatting with it.")
+st.markdown("Upload a PDF to start chatting with it. Make sure to enter short and precise prompts for accurate answers.")
 
 # Upload PDF
 pdf_file = st.file_uploader("Upload your PDF file", type=["pdf"])
