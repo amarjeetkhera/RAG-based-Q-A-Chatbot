@@ -3,11 +3,17 @@ from langchain_community.vectorstores import FAISS
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.document_loaders import PDFPlumberLoader
+from langchain.retrievers import BM25Retriever, EnsembleRetriever
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 import google.generativeai as genai
 import tempfile
 from typing import List
+
+# Global cache to avoid recomputing
+bm25_retriever = None
+faiss_retriever = None
+hybrid_retriever = None
 
 # Initialize Gemini
 def init_gemini():
@@ -38,16 +44,31 @@ def load_and_prepare_docs(pdf_file) -> VectorStore:
     # Create embeddings
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 
-    # Create FAISS vectorstore
+    # FAISS vectorstore and retriever
     vectorstore = FAISS.from_documents(documents, embeddings)
-    return vectorstore
+    global faiss_retriever
+    faiss_retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+
+    # BM25 retriever
+    global bm25_retriever
+    bm25_retriever = BM25Retriever.from_documents(documents)
+    bm25_retriever.k = 3
+
+    # Hybrid retriever
+    global hybrid_retriever
+    hybrid_retriever = EnsembleRetriever(
+        retrievers=[faiss_retriever, bm25_retriever],
+        weights=[0.5, 0.5]
+    )
+    
+    return hybrid_retriever
 
 # Answer a question using Gemini + context from vectorstore
-def answer_question(question: str, vectorstore: VectorStore) -> str:
+def answer_question(question: str, retriever: EnsembleRetriever) -> str:
     init_gemini()
 
     # Retrieve relevant context
-    relevant_docs: List[Document] = vectorstore.similarity_search(question, k=3)
+    relevant_docs: List[Document] = retriever.get_relevant_documents(question)
     context_text = "\n\n".join([doc.page_content for doc in relevant_docs])
 
     prompt = f"""Use the context below to answer the question. 
