@@ -6,3 +6,4 @@ langchain-google-genai
 faiss-cpu
 google-generativeai
 tiktoken
+rank_bm25
