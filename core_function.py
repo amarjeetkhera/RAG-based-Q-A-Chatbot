@@ -41,6 +41,9 @@ def load_and_prepare_docs(pdf_file) -> VectorStore:
     )
     documents = splitter.split_documents(pages)
 
+    # Clean documents (remove empty or weird chunks)
+    documents = [doc for doc in documents if doc.page_content and doc.page_content.strip()]
+
     # Create embeddings
     embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 
