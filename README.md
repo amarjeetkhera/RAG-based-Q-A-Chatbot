@@ -24,6 +24,27 @@ This enhances:
 
   RAG doesn’t just simulate intelligence — it gives your chat assistant access to real relevant knowledge.
 
+## Evaluation Results
+To evaluate the performance of the tool with FAISS as the vector store, a ground truth dataset of 25 Q&A pairs was created from a PDF.
+The PDF chosen was a scientific report published on the Global Agro-Ecological Zoning version 4 (GAEZ v4) methodology developed by the Food and Agriculture Organization of the United Nations (FAO) and the International Institute for Applied System Analysis (IIASA). It discusses the global maize harvestation and utilization patterns, as well as the effects of climate change and crop constraints on crop suitability and irrigation needs in different parts of the world. This PDF was chosen due to its versatile content which includes text, numerical quantifiactions, dates, tabular data, bar charts, heat maps and references. The tool was restricted to textual content only (no OCR yet) and was tested on 4 different setups. For each setup, a different combination of chunk size, chunk overlap and the number of top retrieved chunks (k) was used as shown below:
+
+| Setup | Chunk Size | Overlap | k |
+| ----- | ---------- | ------- | --|
+| A     | 1000       | 150     | 3 |
+| B     | 500        | 50      | 3 |
+| C     | 500        | 50      | 5 |
+| D     | 300        | 50      | 5 |
+
+The bar chart below depicts the accuracy comparison for each setup:
+
+![Screenshot_20250903_181401_Adobe Acrobat](https://github.com/user-attachments/assets/4f943462-e9f3-4521-beed-aeae7fc910df)
+
+### Insights
+- Reducing chunk size from 1000 to 500 tokens improved retrieval precision.
+- Increasing retrieval depth (k=5) led to the highest accuracy.
+- Very small chunks (300 tokens) reduced accuracy due to probable loss of semantic meaning.
+- Best performing setup: chunk_size=500, chunk_overlap=50, k=5 resulting in 96% Accuracy.
+
 ## Deployment
 The tool was built keeping best-practices in mind such as usage of modular functions for better reusability and understanding. Currently, it is deployed as a web application on Streamlit Cloud for quick accessibility and demonstration.
 
