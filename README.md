@@ -9,7 +9,8 @@ The RAG Chatbot is implemented using a Python backend and Streamlit frontend, ma
 
 At a high level, the tool follows an architecture as shown in the diagram below:
 
-![Q A Chatbot_20250814_134159_0000](https://github.com/user-attachments/assets/1dac383d-e4bb-4a2f-b954-ba8fe591c10e)
+<img width="1920" height="1080" alt="Q A Chatbot_20250903_211203_0000" src="https://github.com/user-attachments/assets/40d4990c-ecce-4ff9-ae47-bc7c3e024f55" />
+
 
 (Kindly cite this repository if you use this flow chart)
 
@@ -37,7 +38,9 @@ The PDF chosen was a scientific report published on the Global Agro-Ecological Z
 
 The bar chart below depicts the accuracy comparison for each setup:
 
-![Screenshot_20250903_181401_Adobe Acrobat](https://github.com/user-attachments/assets/4f943462-e9f3-4521-beed-aeae7fc910df)
+![Screenshot_20250903_211801_Adobe Acrobat](https://github.com/user-attachments/assets/09034f10-455e-434d-a620-ad9443a297c5)
+
+
 
 ### Insights
 - Reducing chunk size from 1000 to 500 tokens improved retrieval precision.
