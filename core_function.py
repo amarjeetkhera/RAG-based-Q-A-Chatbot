@@ -47,7 +47,7 @@ def answer_question(question: str, vectorstore: VectorStore) -> str:
     init_gemini()
 
     # Retrieve relevant context
-    relevant_docs: List[Document] = vectorstore.similarity_search(question, k=3)
+    relevant_docs: List[Document] = vectorstore.similarity_search(question, k=5)
     context_text = "\n\n".join([doc.page_content for doc in relevant_docs])
 
     prompt = f"""Use the context below to answer the question. 
