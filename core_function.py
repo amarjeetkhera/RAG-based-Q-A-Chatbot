@@ -29,8 +29,8 @@ def load_and_prepare_docs(pdf_file) -> VectorStore:
     # Split into chunks
     splitter = CharacterTextSplitter(
         separator="\n",
-        chunk_size=1000,
-        chunk_overlap=150,
+        chunk_size=500,
+        chunk_overlap=50,
         length_function=len,
     )
     documents = splitter.split_documents(pages)
