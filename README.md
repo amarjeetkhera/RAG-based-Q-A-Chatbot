@@ -5,7 +5,7 @@ This project presents an intuitive Retrieval-Augmented Generation (RAG) based ch
 Using state-of-the-art language models and embeddings, the chatbot retrieves relevant document chunks and generates accurate, context-aware responses in real-time, enhancing productivity and decision-making across multiple domains like legal, education, research, and enterprise documentation. It demonstrates the power of combining document parsing, semantic search, and large language models to enable smart, personalized, and accurate document-based question-answering.
 
 ## Description
-The RAG Chatbot is implemented using a Python backend and Streamlit frontend, making it deployable as a user-friendly web application. It uses the Gemini Flash LLM from Google to perform contextual question-answering based on document retrieval.
+The RAG Chatbot is implemented using a Python backend and Streamlit frontend, making it deployable as a user-friendly web application. It uses the Gemini 2.0 Flash LLM from Google to perform contextual question-answering based on document retrieval.
 
 At a high level, the tool follows an architecture as shown in the diagram below:
 
