@@ -36,7 +36,7 @@ def load_and_prepare_docs(pdf_file) -> VectorStore:
     documents = splitter.split_documents(pages)
 
     # Create embeddings
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
 
     # Create FAISS vectorstore
     vectorstore = FAISS.from_documents(documents, embeddings)
