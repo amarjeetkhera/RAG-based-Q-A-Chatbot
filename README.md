@@ -41,12 +41,26 @@ The bar chart below depicts the accuracy comparison for each setup:
 ![Screenshot_20250903_211801_Adobe Acrobat](https://github.com/user-attachments/assets/09034f10-455e-434d-a620-ad9443a297c5)
 
 
+  The best performing setup was further used to evaluate retrieval quality metrics like Coverage/Recall and Reciprocal Rate and the overall results were as follows:
+
+| Metric   | Result |
+| -------- | ------ |
+| Coverage | 0.29   |
+| MRR      | 0.81   |
+
+- **Coverage** measures how often relevant chunks were present among the retrieved ones.
+- **MRR (Mean Reciprocal Rank)** evaluates the ranking quality of retrieval.
 
 ### Insights
 - Reducing chunk size from 1000 to 500 tokens improved retrieval precision.
 - Increasing retrieval depth (k=5) led to the highest accuracy.
 - Very small chunks (300 tokens) reduced accuracy due to probable loss of semantic meaning.
-- Best performing setup: chunk_size=500, chunk_overlap=50, k=5 resulting in 96% Accuracy.
+- Best performing setup: chunk_size=500, chunk_overlap=50, k=5 resulting in 96% Accuracy, which is reasonably strong end-to-end performance.
+- High MRR (0.81) shows that when relevant chunks are retrieved, they are usually ranked high (often at rank 1).
+- Lower Coverage (0.29) indicates the system sometimes misses relevant chunks, suggesting more tuning of chunk size, overlap, or hybrid retrieval may improve recall.
+
+ More detailed results and plots are available in the [tests/test_results] folder.
+
 
 ## Deployment
 The tool was built keeping best-practices in mind such as usage of modular functions for better reusability and understanding. Currently, it is deployed as a web application on Streamlit Cloud for quick accessibility and demonstration.
