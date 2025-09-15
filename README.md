@@ -59,7 +59,7 @@ The bar chart below depicts the accuracy comparison for each setup:
 - High MRR (0.81) shows that when relevant chunks are retrieved, they are usually ranked high (often at rank 1).
 - Lower Coverage (0.29) indicates the system sometimes misses relevant chunks, suggesting more tuning of chunk size, overlap, or hybrid retrieval may improve recall.
 
- More detailed results and plots are available in the [tests/test_results] folder.
+ More detailed results and plots are available in the tests/test_results folder.
 
 
 ## Deployment
