@@ -1,8 +1,5 @@
 # RAG-based Q&A Chatbot
 
-## Planned Update!
-A hybrid retrieval approach of combining FAISS and BM25 for better keyword-matching is under development and will be deployed soon after testing.
-
 ## Overview
 This project presents an intuitive Retrieval-Augmented Generation (RAG) based chat assistant designed to allow users to ask questions directly from their PDF documents. Built to make document understanding faster, easier, and more interactive, the tool provides instant, AI-powered answers from large files like research papers, manuals, or reports — without the need to read through them line by line.
 
