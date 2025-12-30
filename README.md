@@ -74,5 +74,6 @@ Streamlit App link: https://rag-based-q-a-chatbot-4csgzsn7ey2mc34gon3mv4.streaml
 How to Use:
 
 1. Visit the Streamlit app link.
-2. Upload your PDF data and ask any question related to the document content.
-3. Get real-time, LLM-powered context-aware answers.
+2. Enter your Google API Key.
+3. Upload your PDF data and ask any questions related to the document content.
+4. Get real-time, LLM-powered context-aware answers.
