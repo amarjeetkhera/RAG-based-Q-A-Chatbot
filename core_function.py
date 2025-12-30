@@ -60,7 +60,7 @@ Context:
 Question: {question}
 Answer:"""
 
-    model = genai.GenerativeModel("gemini-2.0-flash-lite")
+    model = genai.GenerativeModel("gemini-2.0-flash")
     response = model.generate_content(prompt)
 
     return response.text.strip()
