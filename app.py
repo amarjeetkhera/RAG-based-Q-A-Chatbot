@@ -4,9 +4,16 @@ import os
 
 # Set page config
 st.set_page_config(page_title="RAG-based Q&A Chatbot", page_icon="📄", layout="centered")
-
-# Load Gemini API key from Streamlit secrets
-os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+st.sidebar.header("API Configuration")
+user_api_key = st.sidebar.text_input(
+    "Enter your Google Gemini API Key",
+    type="password",
+    help="Your API key is used only for this session. Not stored."
+)
+if not user_api_key:
+    st.warning("Please enter your Google API key to use the chatbot.")
+    st.stop()
+os.environ["GOOGLE_API_KEY"] = user_api_key
 
 # Session state to keep track of chat history and vectorstore
 if "chat_history" not in st.session_state:
@@ -30,6 +37,8 @@ if pdf_file and st.session_state.vectorstore is None:
 # Clear chat button
 if st.button("🧹 Clear Chat"):
     st.session_state.chat_history = []
+    st.session_state.vectorstore = None
+    st.session_state.last_question = None
 
 # Chat interface
 if st.session_state.vectorstore:
@@ -41,6 +50,7 @@ if st.session_state.vectorstore:
 
         # Save to chat history
         st.session_state.chat_history.append((question, response))
+        st.session_state.last_question = question
 
     # Show chat bubbles
     for q, a in st.session_state.chat_history:
