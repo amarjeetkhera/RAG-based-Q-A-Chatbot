@@ -11,8 +11,7 @@ from typing import List
 
 # Initialize Gemini
 def init_gemini():
-    api_key = st.secrets["GOOGLE_API_KEY"]
-    genai.configure(api_key=api_key)
+    genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
 # Load and split PDF into chunks
 def load_and_prepare_docs(pdf_file) -> VectorStore:
