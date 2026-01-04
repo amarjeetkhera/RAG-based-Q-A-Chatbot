@@ -1,12 +1,18 @@
 # RAG-based Q&A Chatbot
 
 ## Overview
-This project presents an intuitive Retrieval-Augmented Generation (RAG) based chat assistant designed to allow users to ask questions directly from their PDF documents. Built to make document understanding faster, easier, and more interactive, the tool provides instant, AI-powered answers from large files like research papers, manuals, or reports — without the need to read through them line by line.
+This project presents an intuitive Retrieval-Augmented Generation (RAG) based chat assistant designed to allow users to ask questions directly from their PDF documents.
 
-Using state-of-the-art language models and embeddings, the chatbot retrieves relevant document chunks and generates accurate, context-aware responses in real-time, enhancing productivity and decision-making across multiple domains like legal, education, research, and enterprise documentation. It demonstrates the power of combining document parsing, semantic search, and large language models to enable smart, personalized, and accurate document-based question-answering.
+The system uses a hybrid retrieval pipeline combining semantic search (FAISS) and keyword-based search (BM25) to improve both contextual understanding and exact keyword matching. This enables more robust and reliable document-grounded answers, especially for technical, numerical and definition-heavy queries.
 
 ## Description
-The RAG Chatbot is implemented using a Python backend and Streamlit frontend, making it deployable as a user-friendly web application. It uses the Gemini 2.0 Flash LLM from Google to perform contextual question-answering based on document retrieval.
+The RAG Chatbot is implemented using a Python backend and Streamlit frontend, making it deployable as a user-friendly web application. It uses Google’s Gemini 2.0 Flash LLM for answer generation and a hybrid retrieval strategy that combines:
+
+- FAISS vector search for semantic similarity
+
+- BM25 keyword search for exact term matching
+
+Retrieved results from both methods are merged and passed as grounded context to the language model, reducing hallucinations and improving recall for keyword-sensitive questions.
 
 At a high level, the tool follows an architecture as shown in the diagram below:
 
@@ -24,7 +30,23 @@ This enhances:
 - Explainability: Responses are traceable to original document content
 - Relevance: Answers stay grounded to the PDF uploaded by the user
 
-  RAG doesn’t just simulate intelligence — it gives your chat assistant access to real relevant knowledge.
+## Hybrid Retrieval: FAISS + BM25
+
+While dense vector search excels at capturing semantic meaning, it may miss exact keyword matches, numerical references, or domain-specific terminology. To address this limitation, the chatbot uses a hybrid retrieval approach:
+
+- FAISS retrieves semantically relevant document chunks using embeddings.
+
+- BM25 retrieves keyword-relevant chunks based on term frequency and inverse document frequency.
+
+- Results from both retrievers are merged and deduplicated before being sent to the LLM.
+
+This approach improves:
+
+- Recall for factual and definition-based queries
+
+- Robustness for technical and numeric questions
+
+- Overall retrieval quality in heterogeneous documents
 
 ## Evaluation Results
 To evaluate the performance of the tool with FAISS as the vector store, a ground truth dataset of 25 Q&A pairs was created from a PDF.
@@ -62,6 +84,10 @@ The bar chart below depicts the accuracy comparison for each setup:
 
  More detailed results and plots are available in the tests/test_results folder.
 
+## Note:
+The evaluation results above were obtained using a FAISS-only retriever.
+
+A hybrid FAISS + BM25 retrieval pipeline was introduced afterward to address the observed low coverage (0.29). This enhancement is expected to improve recall and robustness, particularly for keyword-heavy and structured queries. Updated evaluation results for the hybrid retriever will be added in future iterations.
 
 ## Deployment
 The tool was built keeping best-practices in mind such as usage of modular functions for better reusability and understanding. Currently, it is deployed as a web application on Streamlit Cloud for quick accessibility and demonstration.
@@ -74,3 +100,11 @@ How to Use:
 2. Enter your Google API Key.
 3. Upload your PDF data and ask any questions related to the document content.
 4. Get real-time, LLM-powered context-aware answers.
+
+## Future Work
+- OCR for charts and figures
+
+- Structured table extraction
+
+- Hybrid retriever evaluation
+
