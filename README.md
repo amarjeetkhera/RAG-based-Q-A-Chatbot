@@ -19,7 +19,7 @@ At a high level, the tool follows an architecture as shown in the diagram below:
 <img width="1920" height="1080" alt="Q A Chatbot_20250903_211203_0000" src="https://github.com/user-attachments/assets/40d4990c-ecce-4ff9-ae47-bc7c3e024f55" />
 
 
-(Kindly cite this repository if you use this flow chart)
+(Image Credits: Amarjeet Khera)
 
 ## RAG vs Traditional Chatbots
 Traditional chatbots often rely on static rule-based logic or general-purpose LLMs with no access to specific documents. In contrast, RAG bridges the gap by providing the model with retrieved context directly from your uploaded files.
