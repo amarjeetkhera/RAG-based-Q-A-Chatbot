@@ -49,24 +49,41 @@ def load_and_prepare_docs(pdf_file) -> VectorStore:
 
 # Hybrid Retrieval using combination of FAISS & BM25
 def hybrid_retrieval(query: str, vectorstore: FAISS, bm25: BM25Okapi, documents: List[Document], k=5):
+    # Fetch more than k candidates from both to allow for ranking intersections
+    candidate_k = k * 2 
+    
     # FAISS Semantic Search
-    semantic_docs = vectorstore.similarity_search(query, k=k)
+    semantic_docs = vectorstore.similarity_search(query, k=candidate_k)
 
     # BM25 exact keyword search
     tokenized_query = query.split()
     bm25_scores = bm25.get_scores(tokenized_query)
-    top_bm25_indices = bm25_scores.argsort()[-k:][::-1] #top-k indices
+    top_bm25_indices = bm25_scores.argsort()[-candidate_k:][::-1]
     bm25_docs = [documents[i] for i in top_bm25_indices]
 
-    # Merge to avoid duplicates by page_content
-    seen = set()
-    merged_docs = []
-    for doc in semantic_docs + bm25_docs:
-        if doc.page_content not in seen:
-            merged_docs.append(doc)
-            seen.add(doc.page_content)
-        if len(merged_docs) >= k:
-            break
+    # Applying Reciprocal Rank Fusion (RRF)
+    rrf_scores = defaultdict(float)
+    c = 60  # Constant to smooth rank weights
+    
+    # Mapping page contents back to document objects safely
+    doc_map = {}
+
+    # Rank semantic documents
+    for rank, doc in enumerate(semantic_docs):
+        content = doc.page_content
+        doc_map[content] = doc
+        rrf_scores[content] += 1.0 / (c + (rank + 1))
+
+    # Rank BM25 documents
+    for rank, doc in enumerate(bm25_docs):
+        content = doc.page_content
+        doc_map[content] = doc
+        rrf_scores[content] += 1.0 / (c + (rank + 1))
+
+    # 3. Sort by descending RRF score and take top k
+    sorted_contents = sorted(rrf_scores.items(), key=lambda item: item[1], reverse=True)
+    
+    merged_docs = [doc_map[content] for content, score in sorted_contents[:k]]
     return merged_docs
 
 # Answer a question using Gemini + context from vectorstore
