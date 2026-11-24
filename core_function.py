@@ -1,34 +1,31 @@
 import os
-import streamlit as st
-from langchain_community.vectorstores import FAISS
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+import tempfile
+from collections import defaultdict
+from typing import List, Tuple
+
+from google import genai
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.document_loaders import PDFPlumberLoader
+from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
-from langchain_core.vectorstores import VectorStore
-import google.generativeai as genai
-import tempfile
-from typing import List
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from rank_bm25 import BM25Okapi
-from collections import defaultdict
 
-# Initialize Gemini
-def init_gemini():
-    genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
-# Load and split PDF into chunks
-def load_and_prepare_docs(pdf_file) -> VectorStore:
-    init_gemini()
-
+def load_and_prepare_docs(
+    pdf_file, api_key: str
+) -> Tuple[FAISS, BM25Okapi, List[Document]]:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
         tmp.write(pdf_file.read())
         tmp_path = tmp.name
 
-    # Load PDF using LangChain loader
-    loader = PDFPlumberLoader(tmp_path)
-    pages = loader.load()
+    try:
+        loader = PDFPlumberLoader(tmp_path)
+        pages = loader.load()
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
 
-    # Split into chunks
     splitter = CharacterTextSplitter(
         separator="\n",
         chunk_size=500,
@@ -37,60 +34,65 @@ def load_and_prepare_docs(pdf_file) -> VectorStore:
     )
     documents = splitter.split_documents(pages)
 
-    # Create embeddings
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+    if not documents:
+        raise ValueError(
+            "No extractable text found in this PDF. Please upload a text-based PDF."
+        )
 
-    # Create FAISS vectorstore
+    embeddings = GoogleGenerativeAIEmbeddings(
+        model="models/gemini-embedding-001",
+        google_api_key=api_key,
+    )
+
     vectorstore = FAISS.from_documents(documents, embeddings)
-    # Prepare BM25
-    tokenized_docs = [doc.page_content.split() for doc in documents] #simple white space tokenizer
+
+    tokenized_docs = [doc.page_content.lower().split() for doc in documents]
     bm25 = BM25Okapi(tokenized_docs)
+
     return vectorstore, bm25, documents
 
-# Hybrid Retrieval using combination of FAISS & BM25
-def hybrid_retrieval(query: str, vectorstore: FAISS, bm25: BM25Okapi, documents: List[Document], k=5):
-    # Fetch more than k candidates from both to allow for ranking intersections
-    candidate_k = k * 2 
-    
-    # FAISS Semantic Search
+
+def hybrid_retrieval(
+    query: str,
+    vectorstore: FAISS,
+    bm25: BM25Okapi,
+    documents: List[Document],
+    k: int = 5,
+) -> List[Document]:
+    candidate_k = k * 2
+
     semantic_docs = vectorstore.similarity_search(query, k=candidate_k)
 
-    # BM25 exact keyword search
-    tokenized_query = query.split()
+    tokenized_query = query.lower().split()
     bm25_scores = bm25.get_scores(tokenized_query)
     top_bm25_indices = bm25_scores.argsort()[-candidate_k:][::-1]
     bm25_docs = [documents[i] for i in top_bm25_indices]
 
-    # Applying Reciprocal Rank Fusion (RRF)
     rrf_scores = defaultdict(float)
-    c = 60  # Constant to smooth rank weights
-    
-    # Mapping page contents back to document objects safely
+    c = 60
     doc_map = {}
 
-    # Rank semantic documents
     for rank, doc in enumerate(semantic_docs):
         content = doc.page_content
         doc_map[content] = doc
         rrf_scores[content] += 1.0 / (c + (rank + 1))
 
-    # Rank BM25 documents
     for rank, doc in enumerate(bm25_docs):
         content = doc.page_content
         doc_map[content] = doc
         rrf_scores[content] += 1.0 / (c + (rank + 1))
 
-    # 3. Sort by descending RRF score and take top k
     sorted_contents = sorted(rrf_scores.items(), key=lambda item: item[1], reverse=True)
-    
-    merged_docs = [doc_map[content] for content, score in sorted_contents[:k]]
-    return merged_docs
+    return [doc_map[content] for content, _ in sorted_contents[:k]]
 
-# Answer a question using Gemini + context from vectorstore
-def answer_question(question: str, vectorstore: FAISS, bm25: BM25Okapi, documents: List[Document]) -> str:
-    init_gemini()
 
-    # Retrieve relevant context
+def answer_question(
+    question: str,
+    vectorstore: FAISS,
+    bm25: BM25Okapi,
+    documents: List[Document],
+    api_key: str,
+) -> str:
     relevant_docs = hybrid_retrieval(question, vectorstore, bm25, documents, k=5)
     context_text = "\n\n".join([doc.page_content for doc in relevant_docs])
 
@@ -104,7 +106,10 @@ Context:
 Question: {question}
 Answer:"""
 
-    model = genai.GenerativeModel("gemini-2.0-flash")
-    response = model.generate_content(prompt)
+    client = genai.Client(api_key=api_key)
+    response = client.models.generate_content(
+        model="gemini-3.5-flash-lite",
+        contents=prompt,
+    )
 
     return response.text.strip()
