@@ -8,8 +8,35 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.document_loaders import PDFPlumberLoader
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_core.embeddings import Embeddings
 from rank_bm25 import BM25Okapi
+
+
+class GeminiGenAIEmbeddings(Embeddings):
+    """Embeddings wrapper using the official google-genai SDK with batching."""
+
+    def __init__(self, api_key: str, model: str = "gemini-embedding-001"):
+        self.client = genai.Client(api_key=api_key)
+        self.model = model
+
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        all_embeddings: List[List[float]] = []
+        batch_size = 100
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i : i + batch_size]
+            result = self.client.models.embed_content(
+                model=self.model,
+                contents=batch,
+            )
+            all_embeddings.extend([emb.values for emb in result.embeddings])
+        return all_embeddings
+
+    def embed_query(self, text: str) -> List[float]:
+        result = self.client.models.embed_content(
+            model=self.model,
+            contents=text,
+        )
+        return result.embeddings[0].values
 
 
 def load_and_prepare_docs(
@@ -39,9 +66,9 @@ def load_and_prepare_docs(
             "No extractable text found in this PDF. Please upload a text-based PDF."
         )
 
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/gemini-embedding-001",
-        google_api_key=api_key,
+    embeddings = GeminiGenAIEmbeddings(
+        api_key=api_key,
+        model="gemini-embedding-001",
     )
 
     vectorstore = FAISS.from_documents(documents, embeddings)
